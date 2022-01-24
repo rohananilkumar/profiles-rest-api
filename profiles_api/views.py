@@ -1,10 +1,15 @@
 from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework import status
 
+from profiles_api import serializers;
 
 class HelloApiView(APIView):
     """Test API View"""
+
+    #the serializer_class member fields asks the view to use the serialzer when validating the body of a post, put or patch request
+    serializer_class = serializers.HelloSerializer
 
     #request object, format = format suffix
     def get(self, request, format=None):
@@ -17,3 +22,28 @@ class HelloApiView(APIView):
         ]
 
         return Response({'message':'Hello', 'an_apiview':an_apiview})
+
+    def post(self, request, format=None):
+        """Create a hello message with our name"""
+        serializer = self.serializer_class(data=request.data) #request.data is like req.body in node
+
+        #validating the data
+        if serializer.is_valid():
+            name = serializer.validated_data.get('name')
+            message = f'Hello {name}'
+            return Response({'message':message})
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def put(self, request, pk=None): #pk is the primary key of the object that we're updating
+        """Handle updating an object"""
+        return Response({'method':'PUT'})
+    
+    def patch(self, request, pk=None):
+        """Handles partial update of the object"""
+        #A patch request is just like a put request but only some of the fields that need to be updated will be inside the request body
+        return Response({'method':'PATCH'})
+    
+    def delete(self, request, pk=None):
+        """Handles delete of the object"""
+        return Response({'method':'DELETE'})
